@@ -1147,23 +1147,25 @@
 
     function generateTitleSuggestions(data) {
       const base = data.title || 'Новина sud.ua';
-      const subject = extractSubject(data.full);
       const number = (detectMoney(data.full)[0] || detectNumbers(data.full)[0] || '').trim();
+      const cleanedBase = base.replace(/\s+/g, ' ').trim();
+      const shortBase = cleanedBase.length > 95 ? cleanedBase.slice(0, 92).trim() + '...' : cleanedBase;
+      const impact = detectHumanImpact(data.full) ? 'кого це стосується' : 'що відомо';
       return [
-        `${subject}: що відомо про ${extractTopic(data.full)}`.slice(0, 110),
-        `${subject}${number ? ' на ' + number : ''}: кого це може стосуватися`.slice(0, 110),
-        `${base.length > 95 ? base.slice(0, 92) + '...' : base}`
+        shortBase || 'Сформулюйте заголовок через головний факт новини',
+        `${shortBase || 'Головний факт новини'}: ${impact}`.slice(0, 110),
+        `${shortBase || 'Головний факт новини'}${number ? ' — ключова цифра ' + number : ' — додайте ключову цифру або дату, якщо вона є'}`.slice(0, 120)
       ];
     }
 
     function generateLeadSuggestions(data) {
-      const subject = extractSubject(data.full);
       const audience = detectHumanImpact(data.full) ? 'це може стосуватися громадян, яких прямо зачіпає нове правило або рішення' : 'кого саме це стосується, потрібно уточнити';
       const source = data.source || 'потрібно уточнити джерело';
+      const titleFact = data.title || 'потрібно сформулювати головний факт новини';
       return [
-        `${subject}. ${audience}; джерело: ${source}.`,
-        `У матеріалі йдеться про ${extractTopic(data.full)}. У першому абзаці варто одразу пояснити, кого це стосується і який наслідок має рішення.`,
-        `Головне: ${data.title || 'потрібно сформулювати суть новини'}. Додайте дату, суму або конкретний наслідок, якщо вони є в документі.`
+        `${titleFact}. У першому абзаці варто одразу пояснити, що сталося, кого це стосується і який практичний наслідок має новина; джерело: ${source}.`,
+        `Головне: ${titleFact}. Додайте дату, суму або конкретний наслідок тільки якщо вони є у введеному тексті.`,
+        `Поясніть людський ефект: ${audience}. Не додавайте фактів, яких немає у статті.`
       ];
     }
 
@@ -1251,7 +1253,7 @@
           <tr><td>Низька масовість теми</td><td>${riskStatus(detectPublicInterest(data.full) === 0, detectPublicInterest(data.full) === 1)}</td><td>Показати, чому тема важлива широкій аудиторії.</td></tr>
         </tbody></table></div>
         <h3>Порівняння “до / після”</h3>
-        <div class="table-wrap"><table><thead><tr><th>Елемент</th><th>Було</th><th>Рекомендовано</th></tr></thead><tbody><tr><td>Заголовок</td><td>${escapeHtml(data.title || 'немає')}</td><td>${escapeHtml(titles[0])}</td></tr><tr><td>Перший абзац</td><td>${escapeHtml(data.lead || data.subtitle || 'немає')}</td><td>${escapeHtml(leads[0])}</td></tr><tr><td>Telegram-блок</td><td>${detectTelegramBlock(data.full) || data.checks.shortBlock ? 'є' : 'немає'}</td><td>Додати блок “Коротко” з 5 пунктів.</td></tr><tr><td>Візуал</td><td>${escapeHtml(data.visual || 'не описано')}</td><td>Скрин документа, фото або картка з ключовою цифрою.</td></tr><tr><td>Джерело</td><td>${escapeHtml(data.source || 'не вказано')}</td><td>Офіційний документ або назва органу з посиланням.</td></tr><tr><td>Структура</td><td>${detectTelegramBlock(data.full) ? 'частково готова' : 'потребує перепакування'}</td><td>Заголовок + лід + “Коротко” + джерело + візуал.</td></tr></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Елемент</th><th>Було</th><th>Рекомендовано</th></tr></thead><tbody><tr><td>Заголовок</td><td>${escapeHtml(data.title || 'немає')}</td><td>${escapeHtml(titles[0])}</td></tr><tr><td>Перший абзац</td><td>${escapeHtml(data.lead || data.subtitle || 'немає')}</td><td>${escapeHtml(leads[0])}</td></tr><tr><td>Telegram-блок</td><td>${detectTelegramBlock(data.full) || data.checks.shortBlock ? 'є' : 'немає'}</td><td>${detectTelegramBlock(data.full) || data.checks.shortBlock ? 'Залишити, але перевірити, чи є 3–5 пунктів: що сталося, кого стосується, джерело, наслідок.' : 'Додати блок “Коротко” без нових фактів: тільки дані з поточної статті.'}</td></tr><tr><td>Візуал</td><td>${escapeHtml(data.visual || 'не описано')}</td><td>${data.visual || data.checks.photo || data.checks.video || data.checks.doc ? 'Залишити наявний візуал і підписати його так, щоб було зрозуміло, що саме він підтверджує.' : 'Додати релевантний візуал лише за наявності: фото, скрин документа, цитатну картку або інфографіку.'}</td></tr><tr><td>Джерело</td><td>${escapeHtml(data.source || 'не вказано')}</td><td>${data.source || data.checks.official ? 'Перевірити, що джерело видно в першому екрані або в блоці “Коротко”.' : 'Додати джерело з поточної новини: офіційне посилання, документ або назву органу.'}</td></tr><tr><td>Структура</td><td>${detectTelegramBlock(data.full) ? 'частково готова' : 'потребує перепакування'}</td><td>Не змінювати фактологію: винести на початок заголовок, 1–2 речення суті, кого стосується, джерело і наявний візуал.</td></tr></tbody></table></div>
         <h3>Фінальний висновок</h3>
         <div class="callout">${result.total >= 70 ? 'Новину варто публікувати після фінальної юридичної перевірки.' : 'Новину краще доопрацювати перед публікацією.'} Потенціал для підхоплення “Трухою” — ${prob.label}. Найважливіший крок зараз: посилити критерій “${mainWeak}”.</div>
       `;
