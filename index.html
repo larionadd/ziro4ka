@@ -1,1 +1,1237 @@
-probe
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Аналіз контент-стратегії для зірочки</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --card: #181b22;
+      --card-light: #20242d;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --red: #dc2626;
+      --red-dark: #991b1b;
+      --yellow: #f59e0b;
+      --border: #2f3542;
+      --green: #22c55e;
+      --blue: #38bdf8;
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 20% 0%, rgba(220, 38, 38, 0.16), transparent 34%), var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.55;
+    }
+
+    header {
+      padding: 42px 24px 28px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(24, 27, 34, 0.98), rgba(15, 17, 21, 0.92));
+    }
+
+    .container {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      background: #151821;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.high { border-color: rgba(220, 38, 38, 0.7); color: #fecaca; background: rgba(153, 27, 27, 0.28); }
+    .badge.medium { border-color: rgba(245, 158, 11, 0.7); color: #fde68a; background: rgba(245, 158, 11, 0.16); }
+    .badge.low { border-color: rgba(56, 189, 248, 0.55); color: #bae6fd; background: rgba(56, 189, 248, 0.12); }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: #e5e7eb;
+      font-size: clamp(17px, 2vw, 23px);
+      max-width: 980px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 960px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    button {
+      border: 0;
+      color: var(--text);
+      background: var(--red);
+      border-radius: 8px;
+      min-height: 40px;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); background: #ef4444; }
+    button.secondary { background: var(--card-light); border: 1px solid var(--border); }
+    button.secondary:hover { background: #2a303b; }
+
+    .tabs-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 17, 21, 0.96);
+      backdrop-filter: blur(14px);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 12px 0;
+      scrollbar-color: var(--red) var(--card);
+    }
+
+    .tab-btn {
+      flex: 0 0 auto;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      min-height: 38px;
+      padding: 9px 12px;
+      font-size: 14px;
+    }
+
+    .tab-btn:hover, .tab-btn.active {
+      color: var(--text);
+      background: var(--red-dark);
+      border-color: #ef4444;
+    }
+
+    main { padding: 28px 0 54px; }
+
+    .section {
+      display: none;
+      animation: fadeIn 0.24s ease both;
+    }
+
+    .section.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: clamp(25px, 3vw, 36px);
+      line-height: 1.2;
+    }
+
+    h3 {
+      margin: 24px 0 12px;
+      font-size: 22px;
+    }
+
+    p { color: #d4d4d8; }
+
+    .lead {
+      font-size: 18px;
+      color: #e5e7eb;
+      max-width: 1050px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 22px 0;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--card-light), var(--card));
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #ffffff;
+      font-size: 17px;
+    }
+
+    .callout {
+      margin: 18px 0;
+      padding: 18px;
+      border: 1px solid rgba(245, 158, 11, 0.55);
+      border-left: 5px solid var(--yellow);
+      border-radius: 8px;
+      background: rgba(245, 158, 11, 0.1);
+      color: #fde68a;
+    }
+
+    .table-wrap {
+      margin: 18px 0 28px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+    }
+
+    table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      color: #fff;
+      background: #2a1114;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    tr:nth-child(even) td { background: rgba(255, 255, 255, 0.018); }
+    tr:hover td { background: rgba(220, 38, 38, 0.08); }
+    td { color: #e4e4e7; }
+
+    .mark {
+      color: #fff;
+      background: rgba(220, 38, 38, 0.22);
+      border: 1px solid rgba(220, 38, 38, 0.4);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-weight: 800;
+    }
+
+    .formula {
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff7ed;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: var(--green);
+      color: #052e16;
+      font-weight: 900;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 50;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .to-top {
+      position: fixed;
+      right: 18px;
+      bottom: 76px;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      display: none;
+      z-index: 40;
+    }
+
+    .to-top.visible { display: block; }
+
+    .analyzer-layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .form-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      color: #e5e7eb;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    input[type="text"], input[type="url"], textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #10131a;
+      color: var(--text);
+      padding: 11px 12px;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    textarea { min-height: 110px; resize: vertical; }
+    textarea.large { min-height: 210px; }
+
+    input:focus, textarea:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18);
+    }
+
+    .mode-tabs { display: flex; gap: 8px; margin: 14px 0 18px; flex-wrap: wrap; }
+    .mode-btn { background: var(--card-light); border: 1px solid var(--border); }
+    .mode-btn.active { background: var(--red-dark); border-color: #ef4444; }
+    .mode-panel { display: none; }
+    .mode-panel.active { display: block; }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 10px 0 16px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #11151d;
+      color: #e4e4e7;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .check-item input { accent-color: var(--red); }
+
+    .progress-shell {
+      width: 100%;
+      height: 16px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #0b0d11;
+      border: 1px solid var(--border);
+      margin: 12px 0;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: var(--red);
+      transition: width 0.35s ease;
+    }
+
+    .score-number { font-size: 48px; line-height: 1; font-weight: 900; color: #fff; }
+    .result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+    .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+    .metric-card { border: 1px solid var(--border); border-radius: 8px; padding: 14px; background: var(--card-light); }
+    .metric-card span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .metric-card strong { font-size: 24px; color: #fff; }
+    .recommendation-list { margin: 0; padding-left: 20px; color: #e5e7eb; }
+    .recommendation-list li { margin: 7px 0; }
+    .mini-note { color: var(--muted); font-size: 13px; }
+
+    footer {
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      text-align: center;
+      background: #0b0d11;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      header { padding-top: 30px; }
+      .analyzer-layout { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .container { width: min(100% - 22px, 1240px); }
+      .grid { grid-template-columns: 1fr; }
+      .form-grid, .checkbox-grid, .metric-grid { grid-template-columns: 1fr; }
+      th, td { padding: 12px; }
+      .toolbar button { width: 100%; }
+    }
+
+    @media print {
+      body { background: #fff; color: #111; }
+      header, .tabs-wrap, .toolbar, .to-top, .toast { display: none !important; }
+      .section { display: block !important; page-break-inside: avoid; }
+      .card, .table-wrap, .callout { box-shadow: none; border-color: #bbb; background: #fff; color: #111; }
+      td, th, p, .lead { color: #111; }
+      th { background: #eee; color: #111; }
+      table { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="topline">
+        <span class="badge high">Пріоритет: високий</span>
+        <span class="badge medium">Формат: редакційний dashboard</span>
+        <span class="badge low">Мова: українська</span>
+      </div>
+      <h1>Аналіз контент-стратегії для зірочки</h1>
+      <p class="subtitle">Як підвищити ймовірність підхоплення новин Telegram-каналом Труха Україна</p>
+      <p class="meta">Дата створення документа: 10 червня 2026 року. Мета аналізу: допомогти редакції sud.ua готувати юридично точні, зрозумілі й зручні для Telegram-перепакування новини без маніпулятивного клікбейту.</p>
+      <div class="toolbar">
+        <button type="button" onclick="copyChecklist()">Скопіювати чек-лист</button>
+        <button type="button" class="secondary" onclick="window.print()">Друк / PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs-wrap" aria-label="Навігація розділами">
+    <div class="container">
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="overview" type="button">Огляд</button>
+        <button class="tab-btn" data-tab="analyzer" type="button">Аналізатор статті</button>
+        <button class="tab-btn" data-tab="topics" type="button">Теми з високим потенціалом</button>
+        <button class="tab-btn" data-tab="formula" type="button">Формула новини</button>
+        <button class="tab-btn" data-tab="headlines" type="button">Заголовки</button>
+        <button class="tab-btn" data-tab="lead" type="button">Перший абзац</button>
+        <button class="tab-btn" data-tab="blocks" type="button">Telegram-friendly блоки</button>
+        <button class="tab-btn" data-tab="monitoring" type="button">Щоденний моніторинг</button>
+        <button class="tab-btn" data-tab="legal" type="button">Юридичні тексти простими словами</button>
+        <button class="tab-btn" data-tab="visuals" type="button">Візуали</button>
+        <button class="tab-btn" data-tab="speed" type="button">Швидкість публікації</button>
+        <button class="tab-btn" data-tab="checklist" type="button">Чек-лист редактора</button>
+        <button class="tab-btn" data-tab="examples" type="button">Приклади перепакування</button>
+        <button class="tab-btn" data-tab="mistakes" type="button">Помилки</button>
+        <button class="tab-btn" data-tab="strategy" type="button">Підсумкова стратегія</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="section active" id="overview">
+      <h2>Огляд</h2>
+      <p class="lead">sud.ua потрібно залишатися юридично точним джерелом, але подавати найважливіші новини так, щоб редактор великого Telegram-каналу одразу бачив суть. Telegram-канали підхоплюють не всі новини, бо їм потрібні швидкість, зрозумілість, масовий інтерес, емоційний або практичний наслідок і готовий візуальний матеріал. Найбільший шанс мають теми про мобілізацію, ТЦК, штрафи, виплати, корупцію, резонансні судові рішення, дії поліції та рішення влади, які впливають на багато людей. Головний екран новини має працювати як готова Telegram-заготовка: заголовок, перший абзац, кого стосується, цифра або дата, джерело. Юридичні деталі потрібні, але їх варто розміщувати після простої суті. Людський ефект важливий, бо масова аудиторія читає не “про норму”, а “що зміниться для мене”. Візуал підвищує шанс підхоплення, якщо це скрин документа, картка зі штрафом, фото фігуранта або інфографіка “було / стало”. Клікбейт не повинен підміняти точність: законопроєкт не можна подавати як уже чинний закон, а підозру як доведену вину. Найкраща стратегія для sud.ua — бути швидким, зрозумілим і доказовим джерелом.</p>
+      <div class="grid">
+        <div class="card"><strong>Головна мета</strong><p>Зробити новини sud.ua зручними для швидкого коректного цитування, перепосту або переказу в Telegram.</p></div>
+        <div class="card"><strong>Головний принцип</strong><p>Спочатку проста суть і наслідок для людей, потім юридична деталізація та документи.</p></div>
+        <div class="card"><strong>Що підвищує шанс репосту</strong><p>Короткий заголовок, сильний лід, цифри, офіційне джерело, блок “Коротко”, візуал.</p></div>
+        <div class="card"><strong>Що знижує шанс репосту</strong><p>Канцелярит, довгі заголовки, відсутність конкретики, захована суть, немає джерела або візуалу.</p></div>
+      </div>
+      <div class="callout"><strong>Як користуватися документом:</strong> відкрийте вкладку під тип задачі редактора: для тем — “Теми з високим потенціалом”, для написання — “Формула новини”, для швидкої перевірки — “Чек-лист редактора”, для планування — “Підсумкова стратегія”.</div>
+    </section>
+
+    <section class="section" id="analyzer">
+      <h2>Аналізатор статті</h2>
+      <p class="lead">Інтерактивний інструмент оцінює, наскільки матеріал sud.ua готовий до Telegram-підхоплення: чи є суспільний інтерес, сильний заголовок, зрозумілий перший абзац, цифри, джерело, візуал і блок “Коротко”. Це rule-based аналіз усередині браузера: він працює локально, без сервера і зовнішніх бібліотек.</p>
+      <div class="analyzer-layout">
+        <div class="form-panel">
+          <h3>Дані для аналізу</h3>
+          <div class="mode-tabs" aria-label="Режим аналізатора">
+            <button type="button" class="mode-btn active" data-mode="textMode">Текст статті</button>
+            <button type="button" class="mode-btn" data-mode="linkMode">Посилання</button>
+          </div>
+
+          <div class="mode-panel" id="linkMode">
+            <div class="field">
+              <label for="articleUrl">URL статті sud.ua</label>
+              <input type="url" id="articleUrl" placeholder="https://sud.ua/...">
+            </div>
+            <div class="toolbar"><button type="button" onclick="analyzeUrl()">Проаналізувати посилання</button></div>
+            <p class="mini-note" id="linkMessage">Якщо браузер заблокує автоматичне зчитування через CORS, вставте текст статті вручну у форму нижче.</p>
+          </div>
+
+          <div class="mode-panel active" id="textMode">
+            <div class="form-grid">
+              <div class="field full"><label for="articleTitle">Заголовок статті</label><input type="text" id="articleTitle" placeholder="Наприклад: Суд скасував штраф ТЦК..."></div>
+              <div class="field full"><label for="articleSubtitle">Підзаголовок / лід</label><textarea id="articleSubtitle" placeholder="Короткий лід або підзаголовок"></textarea></div>
+              <div class="field full"><label for="articleLead">Перший абзац</label><textarea id="articleLead" placeholder="1–2 речення: що сталося, хто ухвалив, кого стосується, що зміниться"></textarea></div>
+              <div class="field full"><label for="articleText">Повний текст статті</label><textarea class="large" id="articleText" placeholder="Вставте повний текст матеріалу"></textarea></div>
+              <div class="field"><label for="articleSource">Джерело / офіційне посилання</label><input type="text" id="articleSource" placeholder="Суд, Рада, Кабмін, документ або URL"></div>
+              <div class="field"><label for="visualDescription">Опис візуалу</label><input type="text" id="visualDescription" placeholder="Фото, скрин документа, картка зі штрафом"></div>
+            </div>
+
+            <h3>Ознаки матеріалу</h3>
+            <div class="checkbox-grid">
+              <label class="check-item"><input type="checkbox" id="hasPhoto"> Є фото</label>
+              <label class="check-item"><input type="checkbox" id="hasVideo"> Є відео</label>
+              <label class="check-item"><input type="checkbox" id="hasDocScreenshot"> Є скриншот документа</label>
+              <label class="check-item"><input type="checkbox" id="hasOfficialSource"> Є офіційне джерело</label>
+              <label class="check-item"><input type="checkbox" id="hasQuote"> Є цитата</label>
+              <label class="check-item"><input type="checkbox" id="hasShortBlock"> Є блок “Коротко”</label>
+              <label class="check-item"><input type="checkbox" id="hasAudienceBlock"> Є пояснення “кого це стосується”</label>
+              <label class="check-item"><input type="checkbox" id="hasNumbers"> Є цифри / дати / суми</label>
+              <label class="check-item"><input type="checkbox" id="hasHumanEffect"> Є людський ефект</label>
+              <label class="check-item"><input type="checkbox" id="hasUpdate"> Є оновлення / уточнення</label>
+            </div>
+
+            <div class="toolbar">
+              <button type="button" onclick="analyzeManualArticle()">Проаналізувати статтю</button>
+              <button type="button" class="secondary" onclick="clearAnalyzer()">Очистити</button>
+              <button type="button" class="secondary" onclick="copyRecommendations()">Скопіювати рекомендації</button>
+              <button type="button" class="secondary" onclick="window.print()">Друк / PDF</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-panel" id="analysisResults">
+          <h3>Результати аналізу</h3>
+          <p class="mini-note">Заповніть форму і натисніть “Проаналізувати статтю”. Тут з’являться загальний бал, таблиця критеріїв, метрики, рекомендації, ризики та блок “Коротко” для вставки у матеріал.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="topics">
+      <h2>Теми з високим потенціалом</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Категорія новини</th><th>Ймовірність підхоплення Трухою</th><th>Чому це цікаво масовому Telegram-каналу</th><th>Як краще подати на sud.ua</th></tr></thead>
+        <tbody>
+          <tr><td>Мобілізація</td><td><span class="badge high">Висока</span></td><td>Тема зачіпає мільйони та викликає сильну увагу.</td><td>Одразу пояснити, кого стосується рішення, що зміниться і з якої дати.</td></tr>
+          <tr><td>ТЦК</td><td><span class="badge high">Висока</span></td><td>Є конфлікт між громадянами та системою, високий емоційний інтерес.</td><td>Писати через конкретний кейс: штраф, повістка, суд, помилка ТЦК.</td></tr>
+          <tr><td>Штрафи</td><td><span class="badge high">Висока</span></td><td>Є прямий ризик для читача і зрозуміла цифра.</td><td>Виносити суму штрафу в заголовок і перший абзац.</td></tr>
+          <tr><td>Виплати</td><td><span class="badge high">Висока</span></td><td>Гроші й соціальна допомога мають масовий побутовий інтерес.</td><td>Дати суму, категорію отримувачів, дату та умови.</td></tr>
+          <tr><td>Пенсії</td><td><span class="badge high">Висока</span></td><td>Стосується великої аудиторії та родин пенсіонерів.</td><td>Пояснити, кому перерахують, коли і що потрібно зробити.</td></tr>
+          <tr><td>Корупція</td><td><span class="badge high">Висока</span></td><td>Конфлікт, обурення, посадовці, суми.</td><td>Чітко розділяти “підозрюють”, “обвинувачують”, “суд визнав”.</td></tr>
+          <tr><td>Гучні судові рішення</td><td><span class="badge high">Висока</span></td><td>Є результат і суспільна значущість.</td><td>Пояснити рішення простими словами та додати блок “Що це означає”.</td></tr>
+          <tr><td>Чиновники</td><td><span class="badge high">Висока</span></td><td>Публічні фігури привертають увагу.</td><td>Вказати посаду, суть справи, статус і джерело.</td></tr>
+          <tr><td>Поліція</td><td><span class="badge medium">Середня / висока</span></td><td>Права громадян, перевірки, затримання, ДТП.</td><td>Показати, що саме зможе або не зможе робити поліція.</td></tr>
+          <tr><td>Прокуратура</td><td><span class="badge medium">Середня / висока</span></td><td>Справи, підозри, процесуальні рішення.</td><td>Писати коротко: хто, у чому підозра, який етап провадження.</td></tr>
+          <tr><td>СБУ</td><td><span class="badge high">Висока</span></td><td>Безпека, війна, затримання, державна зрада.</td><td>Уточнювати статус і уникати доведення вини до вироку.</td></tr>
+          <tr><td>НАБУ</td><td><span class="badge high">Висока</span></td><td>Антикорупційні справи з високими сумами.</td><td>Дати суму, посаду, схему, процесуальний статус.</td></tr>
+          <tr><td>ДБР</td><td><span class="badge high">Висока</span></td><td>Справи проти посадовців, силовиків, резонансні затримання.</td><td>Підкреслити суспільний наслідок і джерело.</td></tr>
+          <tr><td>Воєнний стан</td><td><span class="badge high">Висока</span></td><td>Впливає на права, обмеження, виїзд, мобілізацію.</td><td>Формат “що продовжили / що обмежили / до якої дати”.</td></tr>
+          <tr><td>Права громадян</td><td><span class="badge medium">Середня / висока</span></td><td>Корисність і збереження аудиторією.</td><td>Давати практичні кроки: що можна, що не можна, куди звертатися.</td></tr>
+          <tr><td>ДТП / надзвичайні події</td><td><span class="badge medium">Середня / висока</span></td><td>Візуальність і сильний людський фактор.</td><td>Публікувати тільки перевірене, з фото або офіційним джерелом.</td></tr>
+          <tr><td>Резонансні конфлікти</td><td><span class="badge medium">Середня / висока</span></td><td>Є драматургія та потенціал обговорення.</td><td>Дати позиції сторін і юридичний статус.</td></tr>
+          <tr><td>Рішення Верховної Ради</td><td><span class="badge high">Висока</span></td><td>Можуть змінити правила для всієї країни.</td><td>Не “зареєстровано”, а “що пропонують змінити”.</td></tr>
+          <tr><td>Рішення Кабміну</td><td><span class="badge high">Висока</span></td><td>Часто мають негайний практичний ефект.</td><td>Дати дату набрання чинності, категорії людей і документи.</td></tr>
+          <tr><td>Рішення Президента</td><td><span class="badge high">Висока</span></td><td>Висока політична вага.</td><td>Коротко пояснити указ, наслідок і кого стосується.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="formula">
+      <h2>Формула новини</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Елемент новини</th><th>Як має бути</th><th>Чому підвищує шанс репосту</th><th>Приклад формулювання</th></tr></thead>
+        <tbody>
+          <tr><td>Короткий заголовок</td><td>До 90 знаків, результат і конкретика.</td><td>Редактор Telegram одразу бачить суть.</td><td>“ТЦК програв суд щодо штрафу: що вирішив суд”.</td></tr>
+          <tr><td>Сильний перший абзац</td><td>1–2 речення: що сталося, хто вирішив, кого стосується.</td><td>Його можна швидко переказати або процитувати.</td><td>“Суд скасував штраф ТЦК, бо не було доказів належного вручення повістки”.</td></tr>
+          <tr><td>Блок “Коротко”</td><td>3–5 пунктів без зайвих деталей.</td><td>Дає готовий каркас Telegram-посту.</td><td>“Штраф скасовано; причина; кого стосується; джерело”.</td></tr>
+          <tr><td>Кого стосується</td><td>Окремий рядок або блок.</td><td>Показує масовий інтерес.</td><td>“Це важливо для військовозобов’язаних, які оскаржують штрафи”.</td></tr>
+          <tr><td>Цифри / суми / дати</td><td>У заголовку або першому екрані.</td><td>Конкретика краще поширюється.</td><td>“Штраф до 34 000 грн можуть запровадити з 2027 року”.</td></tr>
+          <tr><td>Офіційне джерело</td><td>Судове рішення, документ Ради, постанова Кабміну.</td><td>Зменшує ризик перекручення.</td><td>“Про це йдеться у постанові Кабміну”.</td></tr>
+          <tr><td>Цитата</td><td>Одна сильна юридично точна фраза.</td><td>Telegram може вставити її без довгої редактури.</td><td>“Суд зазначив, що доказів вручення повістки немає”.</td></tr>
+          <tr><td>Візуал</td><td>Скрин документа, картка, фото установи або фігуранта.</td><td>Пост виглядає завершеним.</td><td>Картка “Було / стало: штрафи за порушення”.</td></tr>
+          <tr><td>Що це означає</td><td>Простий наслідок для людей.</td><td>Масова аудиторія читає про практичний ефект.</td><td>“Людина може використати це рішення як аргумент у схожій справі”.</td></tr>
+          <tr><td>Оновлення новини</td><td>Позначка “оновлюється” і таймлайн.</td><td>Канали люблять теми, які розвиваються.</td><td>“Оновлено о 14:20: з’явився текст постанови”.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="headlines">
+      <h2>Заголовки</h2>
+      <p class="lead">Заголовок має відповідати на питання “чому це важливо”. Найкраща формула: дія + суб’єкт + наслідок + цифра або категорія людей. Варто уникати канцеляриту, надмірної довжини і тверджень, які юридично ще не доведені.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Слабкий заголовок</th><th>Покращений заголовок для Telegram-підхоплення</th><th>Чому краще</th></tr></thead>
+        <tbody>
+          <tr><td>Суд розглянув справу щодо мобілізації</td><td>Суд скасував штраф ТЦК: чоловік довів, що не отримував повістку</td><td>Є результат, конфлікт і людський ефект.</td></tr>
+          <tr><td>Зміни у сфері військового обліку</td><td>Військовий облік хочуть змінити: кого зобов’яжуть оновити дані</td><td>Одразу видно, кого стосується.</td></tr>
+          <tr><td>Законопроєкт про відповідальність</td><td>У Раді пропонують штраф до 34 000 грн: за що можуть карати</td><td>Є сума і причина.</td></tr>
+          <tr><td>Питання соціальних виплат</td><td>Кабмін змінив правила виплат ВПО: хто має підтвердити право на допомогу</td><td>Практична користь.</td></tr>
+          <tr><td>Судова практика щодо пенсій</td><td>Суд зобов’язав перерахувати пенсію: кому може допомогти це рішення</td><td>Складна тема пояснена через наслідок.</td></tr>
+          <tr><td>Розгляд справи чиновника</td><td>Чиновника підозрюють у корупції: суд обрав запобіжний захід</td><td>Є фігурант і статус.</td></tr>
+          <tr><td>Нове рішення поліції</td><td>Поліція отримає нові повноваження: що зможуть перевіряти</td><td>Показує практичну зміну.</td></tr>
+          <tr><td>Судове рішення у справі держоргану</td><td>Суд скасував відмову держоргану у виплаті допомоги</td><td>Зрозумілий результат.</td></tr>
+          <tr><td>Рішення щодо виїзду</td><td>Правила виїзду можуть змінити: хто отримає нове право перетину кордону</td><td>Високий суспільний інтерес.</td></tr>
+          <tr><td>Постанова Кабінету Міністрів</td><td>Кабмін затвердив нові умови допомоги: дата, суми і категорії</td><td>Обіцяє конкретику.</td></tr>
+          <tr><td>Зміни в законодавстві</td><td>Українцям змінюють правила отримання субсидій: що треба знати</td><td>Побутова значущість.</td></tr>
+          <tr><td>Судова позиція Верховного Суду</td><td>Верховний Суд пояснив, коли штраф можна скасувати</td><td>Авторитет і практична користь.</td></tr>
+          <tr><td>Новий порядок відповідальності</td><td>Водіям готують новий штраф: за яке порушення доведеться платити</td><td>Масова аудиторія.</td></tr>
+          <tr><td>Питання воєнного стану</td><td>Воєнний стан продовжують: які обмеження залишаться</td><td>Відповідає на головне питання.</td></tr>
+          <tr><td>Суд визнав дії незаконними</td><td>Суд визнав дії поліції незаконними: що сталося</td><td>Є конфлікт і результат.</td></tr>
+          <tr><td>Корупційне правопорушення</td><td>У справі про корупцію арештували майно чиновника</td><td>Конкретна процесуальна дія.</td></tr>
+          <tr><td>Норми для ФОП</td><td>ФОП можуть зобов’язати платити по-новому: що зміниться</td><td>Зрозуміло для бізнес-аудиторії.</td></tr>
+          <tr><td>Рішення про права громадян</td><td>Українцям пояснили, коли можна не сплачувати штраф</td><td>Корисність і збереження.</td></tr>
+          <tr><td>ДБР проводить розслідування</td><td>ДБР повідомило про підозру посадовцю: йдеться про мільйони</td><td>Є орган, статус і масштаб.</td></tr>
+          <tr><td>Зміна процедури оформлення</td><td>Правила оформлення допомоги змінять: які документи знадобляться</td><td>Працює як інструкція.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="lead">
+      <h2>Перший абзац</h2>
+      <p class="lead">Перший абзац вирішує долю підхоплення, бо редактор Telegram часто оцінює матеріал за перші 5–10 секунд. Якщо суть захована в середині, новину складно швидко перепакувати. Лід має бути коротким, фактичним і юридично точним.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Тип новини</th><th>Шаблон першого абзацу</th><th>Коли використовувати</th></tr></thead>
+        <tbody>
+          <tr><td>Суд і ТЦК</td><td>Суд скасував штраф ТЦК для [кого], бо [ключова причина]. Це може бути важливо для [категорія громадян].</td><td>Оскарження штрафів, повісток, рішень ТЦК.</td></tr>
+          <tr><td>Законопроєкт</td><td>У Верховній Раді зареєстрували законопроєкт, який пропонує [зміна]. Він може стосуватися [кого] і передбачає [сума / строк / правило].</td><td>Нові правила, штрафи, права.</td></tr>
+          <tr><td>Кабмін</td><td>Кабмін змінив порядок [виплат / перевірок / допомоги]. Нові правила стосуються [категорія] і почнуть діяти [дата].</td><td>Постанови й урядові рішення.</td></tr>
+          <tr><td>Корупція</td><td>[Орган] повідомив про підозру [посада] у справі про [суть]. За даними слідства, йдеться про [сума / схема].</td><td>НАБУ, СБУ, ДБР, прокуратура.</td></tr>
+          <tr><td>Права громадян</td><td>Українці зможуть / не зможуть [дія] у випадку [умова]. Це випливає з [рішення / закону / роз’яснення].</td><td>Практичні правові новини.</td></tr>
+          <tr><td>Штрафи</td><td>За [порушення] пропонують штрафувати на [сума]. Ініціатива стосується [кого] і зараз перебуває на етапі [статус].</td><td>Відповідальність і законопроєкти.</td></tr>
+          <tr><td>Виплати</td><td>[Категорія громадян] зможуть отримати [сума / вид допомоги]. Для цього потрібно [умова] до [дата].</td><td>Соціальні теми.</td></tr>
+          <tr><td>Воєнний стан</td><td>Воєнний стан планують продовжити до [дата]. Це означає збереження [ключові обмеження].</td><td>Рішення влади про обмеження.</td></tr>
+          <tr><td>Резонансна справа</td><td>Суд ухвалив рішення у справі [фігурант / суть], яка викликала суспільний резонанс. Головний результат — [що вирішено].</td><td>Гучні кримінальні або політичні справи.</td></tr>
+          <tr><td>Верховний Суд</td><td>Верховний Суд пояснив, як застосовувати норму про [тема]. Це може вплинути на спори щодо [масова ситуація].</td><td>Судова практика з широким наслідком.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="blocks">
+      <h2>Telegram-friendly блоки</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Назва блоку</th><th>Структура</th><th>Приклад</th><th>Користь для репосту</th></tr></thead>
+        <tbody>
+          <tr><td>Коротко</td><td>3–5 пунктів: факт, рішення, кого стосується, дата, джерело.</td><td>Суд скасував штраф; причина — немає доказів вручення; стосується військовозобов’язаних.</td><td>Готовий каркас Telegram-посту.</td></tr>
+          <tr><td>Що відомо</td><td>Тільки перевірені факти без оцінок.</td><td>Законопроєкт зареєстровано; штраф — до 34 000 грн; комітет ще не розглядав.</td><td>Допомагає швидко не помилитися.</td></tr>
+          <tr><td>Чому це важливо</td><td>2–3 наслідки для людей або держави.</td><td>Правило може вплинути на порядок отримання допомоги тисячами сімей.</td><td>Пояснює цінність новини.</td></tr>
+          <tr><td>Кого стосується</td><td>Список категорій людей.</td><td>ВПО, пенсіонери, військовозобов’язані, ФОП.</td><td>Показує масовість.</td></tr>
+          <tr><td>Головне за 30 секунд</td><td>Що сталося / кому важливо / дата / джерело.</td><td>Кабмін змінив правила; стосується ВПО; діє з липня; джерело — постанова.</td><td>Ідеально для швидкої перепаковки.</td></tr>
+          <tr><td>Було / стало</td><td>Дві колонки з попереднім і новим правилом.</td><td>Було: 18%. Стало: 5%.</td><td>Добре працює у візуалах.</td></tr>
+          <tr><td>Що зміниться</td><td>Список практичних змін.</td><td>Потрібні нові документи; змінюється строк подання; з’являється перевірка.</td><td>Дає користь читачу.</td></tr>
+          <tr><td>Що вирішив суд</td><td>Позов / рішення / причина / наслідок.</td><td>Позов задоволено; штраф скасовано; причина — відсутність доказів.</td><td>Судова новина стає зрозумілою.</td></tr>
+          <tr><td>Що говорить закон</td><td>Проста норма + посилання на документ.</td><td>Закон вимагає належного повідомлення особи про рішення.</td><td>Зберігає юридичну точність.</td></tr>
+          <tr><td>Що робити громадянам</td><td>3 кроки: перевірити, зібрати, звернутися.</td><td>Перевірте документ; збережіть докази; зверніться зі скаргою або позовом.</td><td>Підвищує корисність і збереження.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="monitoring">
+      <h2>Щоденний моніторинг</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Напрям моніторингу</th><th>Що шукати</th><th>Чому може зацікавити Труху</th><th>Як швидко подати</th></tr></thead>
+        <tbody>
+          <tr><td>Судові рішення</td><td>ТЦК, штрафи, виплати, поліція, держоргани.</td><td>Є конфлікт “людина проти системи”.</td><td>“Суд скасував / зобов’язав / визнав незаконним”.</td></tr>
+          <tr><td>Верховна Рада</td><td>Штрафи, мобілізація, податки, соціальні зміни.</td><td>Масовий вплив.</td><td>“У Раді пропонують змінити…” з позначкою статусу.</td></tr>
+          <tr><td>Кабмін</td><td>Постанови про виплати, правила, обмеження.</td><td>Рішення часто швидко діють.</td><td>Дата + категорії + документ.</td></tr>
+          <tr><td>Президент</td><td>Укази, санкції, воєнний стан.</td><td>Висока політична вага.</td><td>Коротко: що підписано і що це змінює.</td></tr>
+          <tr><td>ТЦК / мобілізація</td><td>Повістки, штрафи, відстрочки, суди.</td><td>Висока тривожність і масовий інтерес.</td><td>Людський кейс + юридична причина.</td></tr>
+          <tr><td>Поліція</td><td>Нові повноваження, затримання, перевірки.</td><td>Права громадян і контроль.</td><td>“Що зможуть перевіряти / за що штрафувати”.</td></tr>
+          <tr><td>Прокуратура</td><td>Підозри, обвинувальні акти, резонансні справи.</td><td>Силова й кримінальна повістка.</td><td>Факт + статус + фігурант.</td></tr>
+          <tr><td>СБУ</td><td>Держзрада, колаборація, безпека.</td><td>Війна і безпека.</td><td>Офіційне повідомлення + обережні формулювання.</td></tr>
+          <tr><td>НАБУ</td><td>Топкорупція, посадовці, великі суми.</td><td>Сильне суспільне обурення.</td><td>Сума + посада + статус.</td></tr>
+          <tr><td>ДБР</td><td>Справи проти силовиків і чиновників.</td><td>Резонанс і конфлікт.</td><td>Офіційний факт і короткий контекст.</td></tr>
+          <tr><td>Корупційні справи</td><td>Хабарі, закупівлі, арешт майна.</td><td>Емоційність і суспільний контроль.</td><td>Уникати твердження вини до вироку.</td></tr>
+          <tr><td>Соціальні виплати</td><td>Пенсії, ВПО, субсидії, допомога дітям.</td><td>Гроші й побутова користь.</td><td>Сума + кому + коли + як отримати.</td></tr>
+          <tr><td>Штрафи</td><td>Водії, військовий облік, бізнес, адмінвідповідальність.</td><td>Чіткий ризик для читача.</td><td>“За що і скільки”.</td></tr>
+          <tr><td>Резонансні історії</td><td>Скандали, конфлікти чиновників, публічні кейси.</td><td>Драматургія та обговорення.</td><td>Позиції сторін + юридичний статус.</td></tr>
+          <tr><td>Міжнародні рішення щодо України</td><td>ЄС, США, ЄСПЛ, санкції, допомога.</td><td>Вплив на Україну і громадян.</td><td>“Що означає для України / українців”.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="legal">
+      <h2>Юридичні тексти простими словами</h2>
+      <p class="lead">Складну юридичну новину потрібно не спрощувати до помилки, а перекладати мовою наслідків. Спочатку пояснити дію і результат, потім дати норму, цитату і джерело.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Проблема юридичного тексту</th><th>Як виправити</th><th>Приклад до</th><th>Приклад після</th></tr></thead>
+        <tbody>
+          <tr><td>Канцелярит</td><td>Замінити на дію.</td><td>“Здійснено нормативне врегулювання”.</td><td>“Кабмін змінив правила”.</td></tr>
+          <tr><td>Абстрактні суб’єкти</td><td>Назвати людей або групи.</td><td>“Суб’єкти правовідносин”.</td><td>“Водії, ФОП, пенсіонери”.</td></tr>
+          <tr><td>Суть захована</td><td>Почати з результату.</td><td>“У межах розгляду справи суд…”</td><td>“Суд скасував штраф 17 000 грн”.</td></tr>
+          <tr><td>Забагато норм</td><td>Спочатку пояснення, потім стаття.</td><td>“Відповідно до ч. 2 ст…”</td><td>“Закон вимагає особистого повідомлення; це передбачено статтею…”.</td></tr>
+          <tr><td>Немає наслідку</td><td>Додати “що це означає”.</td><td>“Рішення набрало законної сили”.</td><td>“Людина зможе повторно вимагати виплату”.</td></tr>
+          <tr><td>Немає прикладу</td><td>Дати побутовий сценарій.</td><td>“За наявності підстав”.</td><td>“Наприклад, якщо повістку не вручали особисто”.</td></tr>
+          <tr><td>Немає порівняння</td><td>Використати “було / стало”.</td><td>“Змінено порядок”.</td><td>“Було: 18%. Стало: 5%”.</td></tr>
+          <tr><td>Ризик неточності</td><td>Розділити факт і прогноз.</td><td>“Українців оштрафують”.</td><td>“Законопроєкт пропонує штраф, але його ще не ухвалили”.</td></tr>
+          <tr><td>Перевантаження контекстом</td><td>Дати максимум 2 абзаци контексту.</td><td>Довга історія змін до закону.</td><td>“Раніше діяло правило X, тепер пропонують Y”.</td></tr>
+          <tr><td>Складна цитата</td><td>Перефразувати й додати точний уривок.</td><td>Повний абзац рішення.</td><td>“Суд зазначив: доказів вручення немає”.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="visuals">
+      <h2>Візуали</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Вид візуалу</th><th>Для яких новин підходить</th><th>Як оформити</th><th>Чому корисно для Telegram</th></tr></thead>
+        <tbody>
+          <tr><td>Скриншот рішення суду</td><td>Суди, ТЦК, штрафи, виплати.</td><td>Замазати персональні дані, виділити ключову фразу.</td><td>Доказовість і швидке цитування.</td></tr>
+          <tr><td>Фото фігуранта</td><td>Чиновники, корупція, резонансні справи.</td><td>Лише публічні фото з джерелом.</td><td>Підвищує впізнаваність.</td></tr>
+          <tr><td>Фото будівлі суду</td><td>Судові рішення без фото фігурантів.</td><td>Нейтральне горизонтальне фото.</td><td>Маркує судову тему.</td></tr>
+          <tr><td>Фото Верховної Ради</td><td>Законопроєкти та голосування.</td><td>Чистий кадр без зайвих написів.</td><td>Швидко пояснює джерело рішення.</td></tr>
+          <tr><td>Фото Кабміну</td><td>Постанови, виплати, правила.</td><td>Офіційний або редакційний кадр.</td><td>Додає інституційний контекст.</td></tr>
+          <tr><td>Картка із сумою штрафу</td><td>Штрафи, відповідальність.</td><td>Велика цифра, коротко “за що”.</td><td>Добре читається у стрічці.</td></tr>
+          <tr><td>Інфографіка “було / стало”</td><td>Закони, податки, виплати.</td><td>Дві колонки, мінімум тексту.</td><td>Легко перепостити без пояснень.</td></tr>
+          <tr><td>Скриншот документа</td><td>Рада, Кабмін, укази, суди.</td><td>Показати реквізити й ключову норму.</td><td>Підвищує довіру.</td></tr>
+          <tr><td>Коротке відео</td><td>ЧП, затримання, заяви, засідання.</td><td>15–40 секунд, без зайвого монтажу.</td><td>Відео краще утримує увагу.</td></tr>
+          <tr><td>Цитатна картка</td><td>Рішення суду, заяви посадовців.</td><td>Одна цитата, джерело, дата.</td><td>Готовий візуал для Telegram.</td></tr>
+          <tr><td>Карта / схема</td><td>Виїзд, регіональні обмеження, маршрути.</td><td>Проста схема з великими підписами.</td><td>Пояснює складну географію.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="speed">
+      <h2>Швидкість публікації</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Ситуація</th><th>Дія редактора</th><th>Оптимальний формат</th><th>Коментар</th></tr></thead>
+        <tbody>
+          <tr><td>Термінове судове рішення</td><td>Випустити коротку новину одразу.</td><td>Лід + “що вирішив суд” + документ.</td><td>Детальний аналіз можна додати пізніше.</td></tr>
+          <tr><td>Нова ініціатива Ради</td><td>Швидко пояснити статус.</td><td>“Пропонують, але ще не ухвалили”.</td><td>Це захищає від юридичної помилки.</td></tr>
+          <tr><td>Зміна виплат</td><td>Публікувати з цифрами й категоріями.</td><td>Сума + кому + коли.</td><td>Високий шанс підхоплення.</td></tr>
+          <tr><td>Резонансне затримання</td><td>Дати факт і процесуальний статус.</td><td>Офіційне повідомлення + обережні формулювання.</td><td>Не називати людину винною до вироку.</td></tr>
+          <tr><td>Конфлікт із ТЦК</td><td>Перевірити документи і дати людський кейс.</td><td>Що сталося + що каже суд / закон.</td><td>Тема дуже чутлива.</td></tr>
+          <tr><td>Рішення щодо мобілізації</td><td>Одразу пояснити наслідки.</td><td>Кого стосується + дата + джерело.</td><td>Не ховати головну зміну.</td></tr>
+          <tr><td>Заява чиновника</td><td>Виділити цитату й перевірити контекст.</td><td>Цитата + що це може означати.</td><td>Обережно з інтерпретаціями.</td></tr>
+          <tr><td>Опублікований офіційний документ</td><td>Оновити новину і додати скрин.</td><td>“Оновлено: з’явився текст документа”.</td><td>Це робить sud.ua джерелом для каналів.</td></tr>
+          <tr><td>Новина вже розійшлася в Telegram</td><td>Дати точну юридичну версію.</td><td>“Що насправді ухвалили”.</td><td>Можна виграти довірою.</td></tr>
+          <tr><td>Є лише часткова інформація</td><td>Позначити обмеження даних.</td><td>“Що відомо зараз” + “оновлюється”.</td><td>Не додумувати факти.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="checklist">
+      <h2>Чек-лист редактора</h2>
+      <div class="table-wrap"><table id="checklistTable">
+        <thead><tr><th>Питання перед публікацією</th><th>Так / Ні</th><th>Що виправити, якщо ні</th></tr></thead>
+        <tbody>
+          <tr><td>Чи є суспільний інтерес?</td><td></td><td>Показати, чому новина важлива для людей або держави.</td></tr>
+          <tr><td>Чи зрозуміло, кого це стосується?</td><td></td><td>Додати блок “Кого стосується”.</td></tr>
+          <tr><td>Чи сильний заголовок?</td><td></td><td>Додати дію, наслідок, суму або категорію людей.</td></tr>
+          <tr><td>Чи зрозуміла суть із першого абзацу?</td><td></td><td>Переписати лід за формулою “що / хто / кого стосується / що зміниться”.</td></tr>
+          <tr><td>Чи є цифри, дати або суми?</td><td></td><td>Винести їх у перший екран.</td></tr>
+          <tr><td>Чи є візуал?</td><td></td><td>Додати скрин документа, картку, фото або цитату.</td></tr>
+          <tr><td>Чи є блок “Коротко”?</td><td></td><td>Створити 3–5 пунктів для швидкого переказу.</td></tr>
+          <tr><td>Чи є офіційне джерело?</td><td></td><td>Додати посилання на суд, орган влади, документ або повідомлення.</td></tr>
+          <tr><td>Чи можна переказати новину у 2 реченнях?</td><td></td><td>Спростити структуру і прибрати другорядне з початку.</td></tr>
+          <tr><td>Чи немає зайвого канцеляриту?</td><td></td><td>Замінити юридичні конструкції простими словами.</td></tr>
+          <tr><td>Чи немає юридичних ризиків?</td><td></td><td>Уточнити статус: законопроєкт, підозра, рішення не набрало чинності.</td></tr>
+          <tr><td>Чи є потенційна Telegram-цитата?</td><td></td><td>Додати одну точну фразу з рішення або документа.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="examples">
+      <h2>Приклади перепакування</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Тема</th><th>Заголовок для sud.ua</th><th>Перший абзац</th><th>Блок “Коротко”</th><th>Чому це може підхопити Труха</th></tr></thead>
+        <tbody>
+          <tr><td>Суд ухвалив рішення щодо мобілізації</td><td>Суд скасував штраф ТЦК: чоловік довів, що не отримував повістку</td><td>Суд скасував штраф за порушення правил військового обліку, бо ТЦК не довів належне повідомлення.</td><td>Штраф скасовано; причина — немає доказів вручення; важливо для військовозобов’язаних.</td><td>Мобілізація, конфлікт, практичний наслідок.</td></tr>
+          <tr><td>Кабмін змінив правила виплат</td><td>Кабмін змінив правила виплат ВПО: хто має підтвердити право на допомогу</td><td>Уряд оновив порядок призначення допомоги переселенцям; частина отримувачів має пройти додаткову перевірку.</td><td>Нові правила; кого перевірять; дата початку; документ Кабміну.</td><td>Гроші й масова аудиторія.</td></tr>
+          <tr><td>Верховна Рада готує новий штраф</td><td>У Раді пропонують штраф до 34 000 грн: за що можуть карати</td><td>У парламенті зареєстрували законопроєкт про нову відповідальність; документ ще не ухвалений.</td><td>Це законопроєкт; штраф до 34 000 грн; кого стосується; статус.</td><td>Сума і ризик для людей.</td></tr>
+          <tr><td>Чиновника затримали у справі про корупцію</td><td>Чиновника підозрюють у корупції: суд обирає запобіжний захід</td><td>Правоохоронці повідомили про підозру посадовцю у справі про неправомірну вигоду.</td><td>Підозра; посада; сума; орган розслідування; судовий етап.</td><td>Корупція і публічний інтерес.</td></tr>
+          <tr><td>Суд скасував рішення держоргану</td><td>Суд скасував відмову держоргану у виплаті допомоги</td><td>Суд визнав незаконною відмову у призначенні допомоги та зобов’язав орган повторно розглянути заяву.</td><td>Відмову скасовано; справу переглянуть; кого може стосуватися.</td><td>Людський ефект і користь.</td></tr>
+          <tr><td>Українцям змінили правила отримання допомоги</td><td>Українцям змінили правила отримання допомоги: які документи потрібні</td><td>Новий порядок передбачає додаткові документи для окремих категорій отримувачів.</td><td>Кого стосується; які документи; строк; джерело.</td><td>Практична інструкція.</td></tr>
+          <tr><td>Поліція отримала нові повноваження</td><td>Поліції хочуть дати нові повноваження: що зможуть перевіряти</td><td>Законопроєкт пропонує розширити повноваження поліції під час перевірки документів.</td><td>Що зможуть перевіряти; у яких випадках; статус ініціативи.</td><td>Права громадян і контроль.</td></tr>
+          <tr><td>ТЦК програв справу в суді</td><td>ТЦК програв справу про штраф: суд знайшов помилку в доказах</td><td>Суд скасував постанову ТЦК, бо матеріали справи не підтвердили факт порушення.</td><td>Штраф скасовано; причина; аргумент суду; джерело.</td><td>Високий інтерес до ТЦК.</td></tr>
+          <tr><td>Змінилися правила виїзду</td><td>Правила виїзду можуть змінити: хто отримає нове право перетину кордону</td><td>У Раді запропонували уточнити перелік осіб, які можуть виїжджати під час воєнного стану.</td><td>Хто зможе виїхати; умови; документ ще не ухвалено.</td><td>Чутлива тема з великим охопленням.</td></tr>
+          <tr><td>Верховний Суд дав важливе роз’яснення</td><td>Верховний Суд пояснив, коли можна оскаржити штраф</td><td>Верховний Суд сформулював позицію щодо доказів, які мають значення у спорах про штрафи.</td><td>Позиція ВС; які докази важливі; для яких справ застосовно.</td><td>Авторитет і практична користь.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="mistakes">
+      <h2>Помилки</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Помилка</th><th>Чому заважає репосту</th><th>Як виправити</th></tr></thead>
+        <tbody>
+          <tr><td>Занадто довгий заголовок</td><td>Редактор Telegram не бачить головного факту.</td><td>Скоротити до однієї дії й одного наслідку.</td></tr>
+          <tr><td>Юридичний канцелярит у першому абзаці</td><td>Масова аудиторія не розуміє суть.</td><td>Почати з рішення, суми або наслідку.</td></tr>
+          <tr><td>Відсутність конкретики</td><td>Немає за що зачепитися.</td><td>Додати дату, суму, посаду, категорію людей.</td></tr>
+          <tr><td>Суть захована в середині тексту</td><td>Новину складно швидко перепакувати.</td><td>Перенести головний факт у перший абзац.</td></tr>
+          <tr><td>Немає людського ефекту</td><td>Тема здається вузькою і технічною.</td><td>Додати “кого стосується” і “що зміниться”.</td></tr>
+          <tr><td>Немає візуалу</td><td>Telegram-пост виглядає слабше.</td><td>Додати скрин, фото, картку або цитату.</td></tr>
+          <tr><td>Немає джерела</td><td>Зменшується довіра і шанс цитування.</td><td>Дати офіційне посилання або реквізити документа.</td></tr>
+          <tr><td>Занадто пізня публікація</td><td>Канали вже взяли тему з інших джерел.</td><td>Спершу коротка новина, потім оновлення.</td></tr>
+          <tr><td>Занадто суха подача</td><td>Тема не конкурує у швидкій стрічці.</td><td>Додати практичний наслідок без маніпуляції.</td></tr>
+          <tr><td>Непідтверджені звинувачення</td><td>Юридичні та репутаційні ризики.</td><td>Писати “підозрюють”, “за версією слідства”, “суд ще не вирішив”.</td></tr>
+          <tr><td>Маніпулятивний клікбейт</td><td>Підриває довіру до sud.ua.</td><td>Сильний, але точний заголовок.</td></tr>
+          <tr><td>Перевантаження деталями</td><td>Telegram-редактору складно швидко витягти суть.</td><td>Поділити текст на “Коротко” і “Деталі”.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="strategy">
+      <h2>Підсумкова стратегія</h2>
+      <div class="grid">
+        <div class="card"><strong>Пріоритетні теми</strong><p>Мобілізація, ТЦК, штрафи, виплати, пенсії, корупція, судові рішення, поліція, СБУ, НАБУ, ДБР, рішення Ради, Кабміну та Президента.</p></div>
+        <div class="card"><strong>Заголовки</strong><p>Писати через результат: хто що вирішив, кого це стосується, яка сума, дата або наслідок.</p></div>
+        <div class="card"><strong>Перші абзаци</strong><p>1–2 речення без вступу: що сталося, хто ухвалив, для кого важливо, що зміниться.</p></div>
+        <div class="card"><strong>Telegram-friendly блоки</strong><p>У кожній резонансній новині додавати “Коротко”, “Кого стосується”, “Що це означає”.</p></div>
+        <div class="card"><strong>Візуали</strong><p>Готувати скрини документів, картки з цифрами, “було / стало”, цитати, фото установ і фігурантів.</p></div>
+        <div class="card"><strong>Термінові новини</strong><p>Спочатку короткий факт із джерелом, потім оновлення з документом і юридичним поясненням.</p></div>
+        <div class="card"><strong>Юридична точність</strong><p>Розділяти законопроєкт і чинний закон, підозру і вирок, рішення першої інстанції і остаточне рішення.</p></div>
+        <div class="card"><strong>Зручність для каналів</strong><p>Робити матеріал таким, щоб його можна було коректно переказати за 30 секунд.</p></div>
+      </div>
+      <div class="callout">
+        <h3>Редакційне правило</h3>
+        <p class="formula">Заголовок + 2 речення суті + кого стосується + цифра / дата / наслідок + джерело + візуал = новина, зручна для Telegram-підхоплення.</p>
+      </div>
+    </section>
+  </main>
+
+  <button class="to-top" id="toTop" type="button" aria-label="Нагору">↑</button>
+  <div class="toast" id="toast">Чек-лист скопійовано</div>
+
+  <footer>Документ підготовлено для редакційної стратегії однієї гарнючки</footer>
+
+  <script>
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('.section');
+    const toTop = document.getElementById('toTop');
+    const toast = document.getElementById('toast');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const target = button.dataset.tab;
+        tabButtons.forEach(item => item.classList.remove('active'));
+        sections.forEach(section => section.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(target).classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    window.addEventListener('scroll', () => {
+      toTop.classList.toggle('visible', window.scrollY > 520);
+    });
+
+    toTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    const analyzerKeywords = {
+      publicInterest: ['мобілізац', 'тцк', 'штраф', 'виплат', 'пенсі', 'суд', 'корупц', 'чиновник', 'поліц', 'прокуратур', 'сбу', 'набу', 'дбр', 'воєнний стан', 'права громадян', 'дтп', 'надзвичайн', 'конфлікт', 'верховн', 'рада', 'кабмін', 'президент', 'законопроєкт', 'постанова'],
+      human: ['українц', 'громадян', 'військовозобов', 'пенсіонер', 'воді', 'працівник', 'батьк', 'переселен', 'впо', 'бізнес', 'чиновник', 'люд', 'сімей'],
+      official: ['суд', 'верховна рада', 'кабмін', 'кабінет міністрів', 'президент', 'міністерство', 'сбу', 'набу', 'дбр', 'прокуратура', 'поліція', 'постанова', 'законопроєкт', 'рішення', 'ухвала', 'наказ', 'офіційно'],
+      urgency: ['сьогодні', 'завтра', 'щойно', 'терміново', 'ухвалив', 'ухвалила', 'набуває чинності', 'змінив', 'змінила', 'оприлюднив', 'затримали', 'скасував', 'скасувала', 'оновлено'],
+      consequence: ['зміниться', 'стосується', 'зобов’яз', 'зможуть', 'не зможуть', 'отримають', 'втратять', 'штраф', 'виплата', 'допомога', 'обмеження']
+    };
+
+    let lastAnalysisText = '';
+
+    document.querySelectorAll('.mode-btn').forEach(button => {
+      button.addEventListener('click', () => switchAnalyzerMode(button.dataset.mode));
+    });
+
+    function switchAnalyzerMode(modeId) {
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === modeId));
+      document.querySelectorAll('.mode-panel').forEach(panel => panel.classList.toggle('active', panel.id === modeId));
+    }
+
+    function countCharacters(text) { return (text || '').trim().length; }
+    function countWords(text) { return ((text || '').trim().match(/[A-Za-zА-Яа-яІіЇїЄєҐґ0-9’'-]+/g) || []).length; }
+    function countSentences(text) { return ((text || '').match(/[.!?…]+(?=\s|$)/g) || []).length || ((text || '').trim() ? 1 : 0); }
+    function estimateReadingTime(text) { return Math.max(1, Math.ceil(countWords(text) / 180)); }
+    function detectNumbers(text) { return (text || '').match(/\d+[\d\s.,]*(?:%|грн|₴|тис|млн|млрд)?/gi) || []; }
+    function detectDates(text) { return (text || '').match(/\b\d{1,2}[.\/]\d{1,2}(?:[.\/]\d{2,4})?\b|\b\d{1,2}\s+(?:січня|лютого|березня|квітня|травня|червня|липня|серпня|вересня|жовтня|листопада|грудня)\b/gi) || []; }
+    function detectMoney(text) { return (text || '').match(/\d+[\d\s.,]*(?:грн|₴|долар|євро|тис|млн|млрд)/gi) || []; }
+    function hasAny(text, words) { const low = (text || '').toLowerCase(); return words.some(word => low.includes(word)); }
+    function countMatches(text, words) { const low = (text || '').toLowerCase(); return words.reduce((sum, word) => sum + (low.includes(word) ? 1 : 0), 0); }
+    function detectOfficialSource(text) { return hasAny(text, analyzerKeywords.official) || /https?:\/\//i.test(text || ''); }
+    function detectHumanImpact(text) { return hasAny(text, analyzerKeywords.human) || hasAny(text, analyzerKeywords.consequence); }
+    function detectPublicInterest(text) { return countMatches(text, analyzerKeywords.publicInterest); }
+    function detectTelegramBlock(text) { return /коротко|що відомо|кого стосується|головне за 30 секунд|було\s*\/\s*стало|що зміниться/i.test(text || ''); }
+
+    function getAnalyzerData() {
+      const data = {
+        title: document.getElementById('articleTitle').value.trim(),
+        subtitle: document.getElementById('articleSubtitle').value.trim(),
+        lead: document.getElementById('articleLead').value.trim(),
+        text: document.getElementById('articleText').value.trim(),
+        source: document.getElementById('articleSource').value.trim(),
+        visual: document.getElementById('visualDescription').value.trim(),
+        checks: {
+          photo: document.getElementById('hasPhoto').checked,
+          video: document.getElementById('hasVideo').checked,
+          doc: document.getElementById('hasDocScreenshot').checked,
+          official: document.getElementById('hasOfficialSource').checked,
+          quote: document.getElementById('hasQuote').checked,
+          shortBlock: document.getElementById('hasShortBlock').checked,
+          audience: document.getElementById('hasAudienceBlock').checked,
+          numbers: document.getElementById('hasNumbers').checked,
+          human: document.getElementById('hasHumanEffect').checked,
+          update: document.getElementById('hasUpdate').checked
+        }
+      };
+      data.full = [data.title, data.subtitle, data.lead, data.text, data.source, data.visual].join('\n');
+      return data;
+    }
+
+    async function analyzeUrl() {
+      const url = document.getElementById('articleUrl').value.trim();
+      const msg = document.getElementById('linkMessage');
+      if (!url) { msg.textContent = 'Вставте URL статті sud.ua.'; return; }
+      msg.textContent = 'Пробую зчитати сторінку. Якщо прямий доступ заблокований, буде використано резервний режим читання.';
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Сторінка повернула статус ' + response.status);
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const title = (doc.querySelector('h1')?.innerText || doc.querySelector('title')?.innerText || '').trim();
+        const description = (doc.querySelector('meta[name="description"]')?.content || '').trim();
+        const paragraphs = [...doc.querySelectorAll('article p, .article p, main p, p')].map(p => p.innerText.trim()).filter(Boolean);
+        fillArticleFields({ title, description, lead: paragraphs[0] || '', text: paragraphs.slice(0, 40).join('\n\n'), source: url });
+        msg.textContent = 'Сторінку вдалося зчитати напряму. Перевірте поля і натисніть “Проаналізувати статтю”.';
+        switchAnalyzerMode('textMode');
+      } catch (error) {
+        try {
+          const readerUrl = 'https://r.jina.ai/http://' + url.replace(/^https?:\/\//i, '');
+          const readerResponse = await fetch(readerUrl);
+          if (!readerResponse.ok) throw new Error('Резервний режим повернув статус ' + readerResponse.status);
+          const readerText = await readerResponse.text();
+          const parsed = parseReaderText(readerText, url);
+          if (!parsed.title && !parsed.text) throw new Error('Не вдалося виділити текст статті');
+          fillArticleFields(parsed);
+          msg.textContent = 'Прямий доступ заблокований браузером, але статтю вдалося зчитати через резервний режим. Перевірте поля і натисніть “Проаналізувати статтю”.';
+          switchAnalyzerMode('textMode');
+        } catch (fallbackError) {
+          msg.textContent = 'Браузер не дозволив автоматично зчитати сторінку. Скопіюйте текст статті у форму нижче для повного аналізу';
+          switchAnalyzerMode('textMode');
+          document.getElementById('articleText').focus();
+        }
+      }
+    }
+
+    function fillArticleFields(parsed) {
+      document.getElementById('articleTitle').value = parsed.title || '';
+      document.getElementById('articleSubtitle').value = parsed.description || '';
+      document.getElementById('articleLead').value = parsed.lead || '';
+      document.getElementById('articleText').value = parsed.text || '';
+      document.getElementById('articleSource').value = parsed.source || '';
+    }
+
+    function parseReaderText(text, sourceUrl) {
+      const clean = (text || '').replace(/\r/g, '').trim();
+      const title = (clean.match(/^Title:\s*(.+)$/m) || [])[1] || '';
+      const description = (clean.match(/^Description:\s*(.+)$/m) || [])[1] || '';
+      const body = clean
+        .replace(/^Title:.*$/gm, '')
+        .replace(/^URL Source:.*$/gm, '')
+        .replace(/^Markdown Content:.*$/gm, '')
+        .replace(/^Published Time:.*$/gm, '')
+        .replace(/^Description:.*$/gm, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+      const paragraphs = body.split(/\n{2,}/).map(item => item.replace(/\[(.*?)\]\((.*?)\)/g, '$1').trim()).filter(Boolean);
+      return {
+        title,
+        description,
+        lead: paragraphs[0] || description || '',
+        text: paragraphs.slice(0, 45).join('\n\n'),
+        source: sourceUrl
+      };
+    }
+
+    function scoreTitle(title) {
+      let score = 0;
+      const len = countCharacters(title);
+      if (!len) score = 0;
+      else if (len >= 45 && len <= 95) score += 6;
+      else if (len <= 120) score += 4;
+      else score += 2;
+      if (detectNumbers(title).length || detectDates(title).length || detectMoney(title).length) score += 2;
+      if (hasAny(title, analyzerKeywords.official)) score += 2;
+      if (hasAny(title, analyzerKeywords.consequence)) score += 2;
+      if (detectPublicInterest(title) > 0) score += 2;
+      if (/розгляд|питання|здійсн|нормативн|правовідносин/i.test(title)) score -= 2;
+      return Math.max(0, Math.min(15, score));
+    }
+
+    function scoreLead(lead) {
+      let score = 0;
+      const len = countCharacters(lead);
+      if (!len) return 0;
+      if (len >= 120 && len <= 350) score += 5;
+      else if (len <= 600) score += 3;
+      else score += 1;
+      if (hasAny(lead, analyzerKeywords.official)) score += 3;
+      if (detectHumanImpact(lead)) score += 3;
+      if (hasAny(lead, analyzerKeywords.consequence)) score += 2;
+      if (detectNumbers(lead).length || detectDates(lead).length || detectMoney(lead).length) score += 2;
+      return Math.max(0, Math.min(15, score));
+    }
+
+    function criterion(score, max, good, bad, fix) {
+      const ratio = max ? score / max : 0;
+      const status = ratio >= 0.75 ? 'сильний' : ratio >= 0.45 ? 'середній' : 'слабкий';
+      return { score, max, status, comment: ratio >= 0.65 ? good : bad, fix };
+    }
+
+    function scoreArticle(data) {
+      const full = data.full;
+      const publicMatches = detectPublicInterest(full);
+      const publicScore = publicMatches >= 4 ? 15 : publicMatches >= 2 ? 11 : publicMatches === 1 ? 7 : 3;
+      const titleScore = scoreTitle(data.title);
+      const leadScore = scoreLead(data.lead || data.subtitle);
+      const humanScore = Math.min(10, (detectHumanImpact(full) ? 6 : 0) + (data.checks.human ? 2 : 0) + (data.checks.audience ? 2 : 0));
+      const numberScore = Math.min(10, (detectNumbers(full).length ? 4 : 0) + (detectDates(full).length ? 2 : 0) + (detectMoney(full).length ? 2 : 0) + (data.checks.numbers ? 2 : 0));
+      const sourceScore = Math.min(10, (detectOfficialSource(full) ? 5 : 0) + (data.checks.official ? 3 : 0) + (/https?:\/\//i.test(data.source) ? 2 : 0));
+      const visualScore = Math.min(10, (data.visual ? 2 : 0) + (data.checks.photo ? 2 : 0) + (data.checks.video ? 2 : 0) + (data.checks.doc ? 3 : 0) + (data.checks.quote ? 1 : 0));
+      const tgScore = Math.min(10, (detectTelegramBlock(full) ? 3 : 0) + (data.checks.shortBlock ? 3 : 0) + (data.checks.quote ? 2 : 0) + (countCharacters(data.lead) <= 600 && countCharacters(data.text) < 5000 ? 2 : 0));
+      const urgencyScore = Math.min(5, (hasAny(full, analyzerKeywords.urgency) ? 3 : 0) + (data.checks.update ? 2 : 0));
+      const criteria = [
+        ['Суспільний інтерес', criterion(publicScore, 15, 'Тема має ознаки масового інтересу.', 'Тема виглядає вузькою або неочевидною для масової аудиторії.', 'Додайте пояснення, кого саме стосується новина і чому вона важлива.')],
+        ['Заголовок', criterion(titleScore, 15, 'Заголовок достатньо конкретний для Telegram.', 'Заголовок потребує конкретики або скорочення.', 'Додайте результат, суму, дату, орган або наслідок.')],
+        ['Перший абзац', criterion(leadScore, 15, 'Перший абзац добре передає суть.', 'Перший абзац не дає швидкої відповіді на головні питання.', 'Почніть із того, що сталося, хто ухвалив і кого це стосується.')],
+        ['Людський ефект', criterion(humanScore, 10, 'Є зрозумілий вплив на людей.', 'Людський ефект недостатньо помітний.', 'Додайте блок “Кого це стосується”.')],
+        ['Цифри, дати, суми, наслідки', criterion(numberScore, 10, 'Є конкретика, яка підсилює новину.', 'Бракує цифр, дат, сум або наслідків.', 'Винесіть важливі числа у заголовок або лід.')],
+        ['Джерело і довіра', criterion(sourceScore, 10, 'Джерело виглядає достатньо надійним.', 'Джерело або офіційна прив’язка слабкі.', 'Додайте офіційний документ, орган або посилання.')],
+        ['Візуал', criterion(visualScore, 10, 'Матеріал має візуальну опору.', 'Візуал слабкий або відсутній.', 'Додайте скрин документа, фото, картку або цитату.')],
+        ['Telegram-friendly структура', criterion(tgScore, 10, 'Структура зручна для перепакування.', 'Бракує готового блоку для Telegram.', 'Додайте “Коротко”, цитату і пояснення наслідків.')],
+        ['Актуальність і терміновість', criterion(urgencyScore, 5, 'Є ознаки оперативності.', 'Оперативність неочевидна.', 'Додайте дату, статус рішення або позначку оновлення.')]
+      ];
+      const total = criteria.reduce((sum, item) => sum + item[1].score, 0);
+      return { total, criteria };
+    }
+
+    function probability(score) {
+      if (score >= 85) return { label: 'дуже висока', cls: 'high', color: '#dc2626' };
+      if (score >= 70) return { label: 'висока', cls: 'medium', color: '#f97316' };
+      if (score >= 40) return { label: 'середня', cls: 'medium', color: '#f59e0b' };
+      return { label: 'низька', cls: 'low', color: '#71717a' };
+    }
+
+    function extractTopic(text) {
+      const low = text.toLowerCase();
+      if (low.includes('тцк')) return 'рішення щодо ТЦК';
+      if (low.includes('мобілізац')) return 'мобілізацію';
+      if (low.includes('штраф')) return 'новий штраф';
+      if (low.includes('виплат')) return 'виплати';
+      if (low.includes('пенсі')) return 'пенсії';
+      if (low.includes('корупц')) return 'корупційну справу';
+      if (low.includes('суд')) return 'судове рішення';
+      return 'важливу зміну';
+    }
+
+    function extractSubject(text) {
+      const low = text.toLowerCase();
+      if (low.includes('кабмін')) return 'Кабмін змінив правила';
+      if (low.includes('верховн') || low.includes('рада')) return 'У Раді пропонують зміни';
+      if (low.includes('суд')) return 'Суд ухвалив рішення';
+      if (low.includes('поліція')) return 'Поліція отримає зміни';
+      if (low.includes('тцк')) return 'ТЦК фігурує у справі';
+      return 'Українцям пояснили зміни';
+    }
+
+    function generateTitleSuggestions(data) {
+      const base = data.title || 'Новина sud.ua';
+      const subject = extractSubject(data.full);
+      const number = (detectMoney(data.full)[0] || detectNumbers(data.full)[0] || '').trim();
+      return [
+        `${subject}: що відомо про ${extractTopic(data.full)}`.slice(0, 110),
+        `${subject}${number ? ' на ' + number : ''}: кого це може стосуватися`.slice(0, 110),
+        `${base.length > 95 ? base.slice(0, 92) + '...' : base}`
+      ];
+    }
+
+    function generateLeadSuggestions(data) {
+      const subject = extractSubject(data.full);
+      const audience = detectHumanImpact(data.full) ? 'це може стосуватися громадян, яких прямо зачіпає нове правило або рішення' : 'кого саме це стосується, потрібно уточнити';
+      const source = data.source || 'потрібно уточнити джерело';
+      return [
+        `${subject}. ${audience}; джерело: ${source}.`,
+        `У матеріалі йдеться про ${extractTopic(data.full)}. У першому абзаці варто одразу пояснити, кого це стосується і який наслідок має рішення.`,
+        `Головне: ${data.title || 'потрібно сформулювати суть новини'}. Додайте дату, суму або конкретний наслідок, якщо вони є в документі.`
+      ];
+    }
+
+    function generateTelegramBlock(data) {
+      const source = data.source || 'потрібно уточнити';
+      return `Коротко:\n\n* Що сталося: ${data.title || 'потрібно уточнити'}\n* Кого стосується: ${detectHumanImpact(data.full) || data.checks.audience ? 'громадян або окремої категорії людей, яку треба назвати в тексті' : 'потрібно уточнити'}\n* Що зміниться: ${hasAny(data.full, analyzerKeywords.consequence) ? 'у матеріалі є ознаки практичного наслідку, його варто винести окремо' : 'потрібно уточнити'}\n* Джерело: ${source}\n* Чому це важливо: ${detectPublicInterest(data.full) ? 'тема має суспільний інтерес і може бути швидко переказана для Telegram' : 'потрібно показати суспільний інтерес'}`;
+    }
+
+    function generateRecommendations(scoreData, data) {
+      const recs = [];
+      if (countCharacters(data.title) > 120) recs.push('Скоротити заголовок до 90–110 символів.');
+      if (scoreTitle(data.title) < 10) recs.push('Додати в заголовок результат, орган, суму, дату або конкретний наслідок.');
+      if (scoreLead(data.lead || data.subtitle) < 10) recs.push('Переписати перший абзац за формулою: що сталося + хто ухвалив / повідомив + кого стосується + наслідок.');
+      if (!detectHumanImpact(data.full) && !data.checks.human) recs.push('Додати пояснення “кого це стосується” і чому це важливо для людей.');
+      if (!detectNumbers(data.full).length && !data.checks.numbers) recs.push('Додати цифри, дату, суму, строк або конкретний наслідок, якщо вони є у документі.');
+      if (!detectOfficialSource(data.full) && !data.checks.official) recs.push('Додати офіційне джерело: судове рішення, постанову, законопроєкт або повідомлення органу.');
+      if (!data.visual && !data.checks.photo && !data.checks.video && !data.checks.doc) recs.push('Додати візуал: скриншот документа, фото установи, картку зі штрафом або цитатну картку.');
+      if (!detectTelegramBlock(data.full) && !data.checks.shortBlock) recs.push('Додати блок “Коротко” перед основним текстом.');
+      if (!data.checks.quote) recs.push('Додати коротку цитату з документа або рішення, яку можна використати в Telegram.');
+      if (countCharacters(data.text) > 5000) recs.push('Зробити коротку версію на початку: 3–5 пунктів перед деталями.');
+      if (!recs.length) recs.push('Матеріал уже добре підготовлений для Telegram-перепакування; перевірте тільки юридичний статус і візуал.');
+      return recs.slice(0, 12);
+    }
+
+    function riskStatus(conditionHigh, conditionMedium) {
+      if (conditionHigh) return '<span class="badge high">високий</span>';
+      if (conditionMedium) return '<span class="badge medium">середній</span>';
+      return '<span class="badge low">низький</span>';
+    }
+
+    function analyzeManualArticle() {
+      const data = getAnalyzerData();
+      const result = scoreArticle(data);
+      result.data = data;
+      result.metrics = {
+        titleChars: countCharacters(data.title),
+        leadChars: countCharacters(data.lead),
+        textChars: countCharacters(data.text),
+        words: countWords(data.text),
+        sentences: countSentences(data.text),
+        reading: estimateReadingTime(data.text),
+        numbers: detectNumbers(data.full).length,
+        links: /https?:\/\//i.test(data.full) ? 'так' : 'ні',
+        official: detectOfficialSource(data.full) || data.checks.official ? 'так' : 'ні',
+        telegramBlock: detectTelegramBlock(data.full) || data.checks.shortBlock ? 'так' : 'ні'
+      };
+      renderAnalysis(result);
+    }
+
+    function metric(label, value) { return `<div class="metric-card"><span>${label}</span><strong>${value}</strong></div>`; }
+    function escapeHtml(value) { return String(value || '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
+
+    function renderAnalysis(result) {
+      const data = result.data;
+      const prob = probability(result.total);
+      const recs = generateRecommendations(result, data);
+      const titles = generateTitleSuggestions(data);
+      const leads = generateLeadSuggestions(data);
+      const tgBlock = generateTelegramBlock(data);
+      const mainBoost = result.criteria.slice().sort((a, b) => b[1].score / b[1].max - a[1].score / a[1].max)[0][0];
+      const mainWeak = result.criteria.slice().sort((a, b) => a[1].score / a[1].max - b[1].score / b[1].max)[0][0];
+      lastAnalysisText = [`Загальний бал: ${result.total}/100 (${prob.label})`, `Головна сильна сторона: ${mainBoost}`, `Головна слабка сторона: ${mainWeak}`, '', 'Рекомендації:', ...recs.map(r => `- ${r}`), '', tgBlock].join('\n');
+      document.getElementById('analysisResults').innerHTML = `
+        <h3>Загальна оцінка</h3>
+        <div class="card"><div class="score-number">${result.total}/100</div><div class="progress-shell"><div class="progress-bar" style="width:${result.total}%; background:${prob.color}"></div></div><p><span class="badge ${prob.cls}">${prob.label}</span></p><p>Матеріал має ${prob.label} ймовірність підхоплення за поточною структурою. Найбільше шанс підвищує критерій “${mainBoost}”, а найбільше стримує “${mainWeak}”.</p></div>
+        <div class="result-actions"><button type="button" onclick="copyRecommendations()">Скопіювати рекомендації</button><button type="button" class="secondary" onclick="window.print()">Друк / PDF</button></div>
+        <h3>Оцінка за критеріями</h3>
+        <div class="table-wrap"><table><thead><tr><th>Критерій</th><th>Бал</th><th>Максимум</th><th>Статус</th><th>Коментар</th><th>Що виправити</th></tr></thead><tbody>${result.criteria.map(([name, item]) => `<tr><td>${name}</td><td>${item.score}</td><td>${item.max}</td><td><span class="badge ${item.status === 'сильний' ? 'high' : item.status === 'середній' ? 'medium' : 'low'}">${item.status}</span></td><td>${item.comment}</td><td>${item.fix}</td></tr>`).join('')}</tbody></table></div>
+        <h3>Автоматичні метрики тексту</h3>
+        <div class="metric-grid">${metric('Символів у заголовку', result.metrics.titleChars)}${metric('Символів у першому абзаці', result.metrics.leadChars)}${metric('Символів у тексті', result.metrics.textChars)}${metric('Слів у тексті', result.metrics.words)}${metric('Речень', result.metrics.sentences)}${metric('Час читання', result.metrics.reading + ' хв')}${metric('Знайдено чисел', result.metrics.numbers)}${metric('Є посилання', result.metrics.links)}${metric('Офіційне джерело', result.metrics.official)}${metric('Telegram-блок', result.metrics.telegramBlock)}</div>
+        <h3>Рекомендації щодо заголовка</h3>
+        <div class="card"><p>Поточна довжина: <span class="mark">${result.metrics.titleChars}</span> символів. ${result.metrics.titleChars > 120 ? 'Заголовок занадто довгий.' : result.metrics.titleChars >= 45 ? 'Довжина заголовка нормальна.' : 'Заголовок може бути занадто коротким або загальним.'}</p><ol class="recommendation-list">${titles.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ol></div>
+        <h3>Рекомендації щодо першого абзацу</h3>
+        <div class="card"><p>${result.metrics.leadChars > 600 ? 'Перший абзац занадто довгий.' : result.metrics.leadChars >= 120 ? 'Перший абзац має прийнятну довжину.' : 'Перший абзац варто зробити змістовнішим.'}</p><ol class="recommendation-list">${leads.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ol></div>
+        <h3>Telegram-блок для вставки у статтю</h3>
+        <div class="card"><pre style="white-space:pre-wrap; color:#f4f4f5; font-family:inherit; margin:0">${escapeHtml(tgBlock)}</pre></div>
+        <h3>Список конкретних правок</h3>
+        <div class="card"><ul class="recommendation-list">${recs.map(r => `<li>${r}</li>`).join('')}</ul></div>
+        <h3>Ризики</h3>
+        <div class="table-wrap"><table><thead><tr><th>Ризик</th><th>Статус</th><th>Що зробити</th></tr></thead><tbody>
+          <tr><td>Юридична неточність</td><td>${riskStatus(!detectOfficialSource(data.full) && !data.checks.official, !data.source)}</td><td>Уточнити статус документа, рішення або підозри.</td></tr>
+          <tr><td>Клікбейт</td><td>${riskStatus(/шок|сенсац|всі будуть|терміново/i.test(data.title), /можуть|ймовірно/i.test(data.title))}</td><td>Залишити сильну, але точну формулу без перебільшень.</td></tr>
+          <tr><td>Відсутність джерела</td><td>${riskStatus(!data.source && !data.checks.official, !/https?:\/\//i.test(data.source))}</td><td>Додати офіційне посилання або назву органу.</td></tr>
+          <tr><td>Надто суха подача</td><td>${riskStatus(!detectHumanImpact(data.full), !data.checks.audience)}</td><td>Додати людський ефект і пояснення наслідків.</td></tr>
+          <tr><td>Низька масовість теми</td><td>${riskStatus(detectPublicInterest(data.full) === 0, detectPublicInterest(data.full) === 1)}</td><td>Показати, чому тема важлива широкій аудиторії.</td></tr>
+        </tbody></table></div>
+        <h3>Порівняння “до / після”</h3>
+        <div class="table-wrap"><table><thead><tr><th>Елемент</th><th>Було</th><th>Рекомендовано</th></tr></thead><tbody><tr><td>Заголовок</td><td>${escapeHtml(data.title || 'немає')}</td><td>${escapeHtml(titles[0])}</td></tr><tr><td>Перший абзац</td><td>${escapeHtml(data.lead || data.subtitle || 'немає')}</td><td>${escapeHtml(leads[0])}</td></tr><tr><td>Telegram-блок</td><td>${detectTelegramBlock(data.full) || data.checks.shortBlock ? 'є' : 'немає'}</td><td>Додати блок “Коротко” з 5 пунктів.</td></tr><tr><td>Візуал</td><td>${escapeHtml(data.visual || 'не описано')}</td><td>Скрин документа, фото або картка з ключовою цифрою.</td></tr><tr><td>Джерело</td><td>${escapeHtml(data.source || 'не вказано')}</td><td>Офіційний документ або назва органу з посиланням.</td></tr><tr><td>Структура</td><td>${detectTelegramBlock(data.full) ? 'частково готова' : 'потребує перепакування'}</td><td>Заголовок + лід + “Коротко” + джерело + візуал.</td></tr></tbody></table></div>
+        <h3>Фінальний висновок</h3>
+        <div class="callout">${result.total >= 70 ? 'Новину варто публікувати після фінальної юридичної перевірки.' : 'Новину краще доопрацювати перед публікацією.'} Потенціал для підхоплення “Трухою” — ${prob.label}. Найважливіший крок зараз: посилити критерій “${mainWeak}”.</div>
+      `;
+    }
+
+    function copyRecommendations() {
+      const text = lastAnalysisText || 'Спершу проаналізуйте статтю, щоб отримати рекомендації.';
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(showToast);
+      else {
+        const area = document.createElement('textarea');
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+        showToast();
+      }
+    }
+
+    function clearAnalyzer() {
+      ['articleUrl','articleTitle','articleSubtitle','articleLead','articleText','articleSource','visualDescription'].forEach(id => document.getElementById(id).value = '');
+      ['hasPhoto','hasVideo','hasDocScreenshot','hasOfficialSource','hasQuote','hasShortBlock','hasAudienceBlock','hasNumbers','hasHumanEffect','hasUpdate'].forEach(id => document.getElementById(id).checked = false);
+      lastAnalysisText = '';
+      document.getElementById('analysisResults').innerHTML = '<h3>Результати аналізу</h3><p class="mini-note">Заповніть форму і натисніть “Проаналізувати статтю”. Тут з’являться загальний бал, таблиця критеріїв, метрики, рекомендації, ризики та блок “Коротко” для вставки у матеріал.</p>';
+    }
+
+    function showToast() {
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    function copyChecklist() {
+      const rows = [...document.querySelectorAll('#checklistTable tbody tr')];
+      const text = rows.map(row => {
+        const cells = row.querySelectorAll('td');
+        return '□ ' + cells[0].innerText + ' — якщо ні: ' + cells[2].innerText;
+      }).join('\n');
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(showToast);
+      } else {
+        const area = document.createElement('textarea');
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+        showToast();
+      }
+    }
+  </script>
+</body>
+</html>
