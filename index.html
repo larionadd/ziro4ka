@@ -929,10 +929,9 @@
         if (!response.ok) throw new Error('Сторінка повернула статус ' + response.status);
         const html = await response.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        const title = (doc.querySelector('h1')?.innerText || doc.querySelector('title')?.innerText || '').trim();
-        const description = (doc.querySelector('meta[name="description"]')?.content || '').trim();
-        const paragraphs = [...doc.querySelectorAll('article p, .article p, main p, p')].map(p => p.innerText.trim()).filter(Boolean);
-        fillArticleFields({ title, description, lead: paragraphs[0] || '', text: paragraphs.slice(0, 40).join('\n\n'), source: url });
+        const parsed = extractSudUaArticle(doc, url);
+        if (!parsed.title && !parsed.text) throw new Error('Не вдалося виділити основний текст статті');
+        fillArticleFields(parsed);
         msg.textContent = 'Сторінку вдалося зчитати напряму. Перевірте поля і натисніть “Проаналізувати статтю”.';
         switchAnalyzerMode('textMode');
       } catch (error) {
@@ -954,12 +953,76 @@
       }
     }
 
+    function extractSudUaArticle(doc, sourceUrl) {
+      const title = cleanArticleText(
+        doc.querySelector('h1')?.innerText ||
+        doc.querySelector('.b-news-name')?.innerText ||
+        doc.querySelector('.b-news-title')?.innerText ||
+        doc.querySelector('title')?.innerText ||
+        ''
+      );
+      const description = cleanArticleText(doc.querySelector('meta[name="description"]')?.content || '');
+      const announce = cleanArticleText(
+        doc.querySelector('div.b-news-announce')?.innerText ||
+        doc.querySelector('.b-news-announce')?.innerText ||
+        ''
+      );
+      const textNode =
+        doc.querySelector('div.b-static-text.b-news-text') ||
+        doc.querySelector('.b-static-text.b-news-text') ||
+        doc.querySelector('.b-news-text');
+
+      let text = '';
+      if (textNode) {
+        const clone = textNode.cloneNode(true);
+        clone.querySelectorAll('script, style, noscript, iframe, form, button, .advert, .advertising, .banner, .social, .share, .b-tags, .b-news-tags, .b-social, .b-follow, .b-news-subscribe').forEach(node => node.remove());
+        text = cleanArticleText(clone.innerText || clone.textContent || '');
+      }
+
+      if (!text) {
+        const articleRoot = doc.querySelector('article') || doc.querySelector('main') || doc.body;
+        const paragraphs = [...articleRoot.querySelectorAll('p')]
+          .map(p => cleanArticleText(p.innerText || p.textContent || ''))
+          .filter(isArticleParagraph);
+        text = paragraphs.slice(0, 45).join('\n\n');
+      }
+
+      return {
+        title,
+        description,
+        lead: announce || description || firstArticleParagraph(text),
+        text,
+        source: sourceUrl
+      };
+    }
+
     function fillArticleFields(parsed) {
       document.getElementById('articleTitle').value = parsed.title || '';
       document.getElementById('articleSubtitle').value = parsed.description || '';
       document.getElementById('articleLead').value = parsed.lead || '';
       document.getElementById('articleText').value = parsed.text || '';
       document.getElementById('articleSource').value = parsed.source || '';
+    }
+
+    function cleanArticleText(text) {
+      return (text || '')
+        .replace(/\u00a0/g, ' ')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n[ \t]+/g, '\n')
+        .replace(/[ \t]{2,}/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+    }
+
+    function isArticleParagraph(text) {
+      if (!text || text.length < 35) return false;
+      if (/^(Facebook|Google News|Telegram|Instagram|VIBER|WhatsApp|Слідкуйте|Підписуйтесь|Читайте також|Реклама|Фото|Відео)/i.test(text)) return false;
+      if (/t\.me\/sudya|Google Новини|Facebook|Instagram|VIBER|WhatsApp/i.test(text)) return false;
+      return true;
+    }
+
+    function firstArticleParagraph(text) {
+      return (text || '').split(/\n{2,}/).map(item => item.trim()).find(isArticleParagraph) || '';
     }
 
     function parseReaderText(text, sourceUrl) {
@@ -974,7 +1037,10 @@
         .replace(/^Description:.*$/gm, '')
         .replace(/\n{3,}/g, '\n\n')
         .trim();
-      const paragraphs = body.split(/\n{2,}/).map(item => item.replace(/\[(.*?)\]\((.*?)\)/g, '$1').trim()).filter(Boolean);
+      const paragraphs = body
+        .split(/\n{2,}/)
+        .map(item => cleanArticleText(item.replace(/\[(.*?)\]\((.*?)\)/g, '$1')))
+        .filter(isArticleParagraph);
       return {
         title,
         description,
