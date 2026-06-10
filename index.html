@@ -925,32 +925,45 @@
       if (!url) { msg.textContent = 'Вставте URL статті sud.ua.'; return; }
       msg.textContent = 'Пробую зчитати сторінку. Якщо прямий доступ заблокований, буде використано резервний режим читання.';
       try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Сторінка повернула статус ' + response.status);
-        const html = await response.text();
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        const parsed = extractSudUaArticle(doc, url);
-        if (!parsed.title && !parsed.text) throw new Error('Не вдалося виділити основний текст статті');
+        const html = await fetchArticleHtml(url);
+        const parsed = parseSudUaHtml(html, url);
         fillArticleFields(parsed);
         msg.textContent = 'Сторінку вдалося зчитати напряму. Перевірте поля і натисніть “Проаналізувати статтю”.';
         switchAnalyzerMode('textMode');
       } catch (error) {
+        msg.textContent = 'Не вдалося автоматично зчитати саме блок новини .b-static-text.b-news-text. Щоб не аналізувати рекламу, сайдбар і службові блоки, скопіюйте текст статті у форму нижче.';
+        switchAnalyzerMode('textMode');
+        document.getElementById('articleText').focus();
+      }
+    }
+
+    async function fetchArticleHtml(url) {
+      const attempts = [
+        url,
+        'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+        'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(url)
+      ];
+
+      let lastError = null;
+      for (const attempt of attempts) {
         try {
-          const readerUrl = 'https://r.jina.ai/http://' + url.replace(/^https?:\/\//i, '');
-          const readerResponse = await fetch(readerUrl);
-          if (!readerResponse.ok) throw new Error('Резервний режим повернув статус ' + readerResponse.status);
-          const readerText = await readerResponse.text();
-          const parsed = parseReaderText(readerText, url);
-          if (!parsed.title && !parsed.text) throw new Error('Не вдалося виділити текст статті');
-          fillArticleFields(parsed);
-          msg.textContent = 'Прямий доступ заблокований браузером, але статтю вдалося зчитати через резервний режим. Перевірте поля і натисніть “Проаналізувати статтю”.';
-          switchAnalyzerMode('textMode');
-        } catch (fallbackError) {
-          msg.textContent = 'Браузер не дозволив автоматично зчитати сторінку. Скопіюйте текст статті у форму нижче для повного аналізу';
-          switchAnalyzerMode('textMode');
-          document.getElementById('articleText').focus();
+          const response = await fetch(attempt);
+          if (!response.ok) throw new Error('Статус ' + response.status);
+          const html = await response.text();
+          if (html && html.includes('b-static-text') && html.includes('b-news-text')) return html;
+          lastError = new Error('HTML не містить блока новини .b-static-text.b-news-text');
+        } catch (error) {
+          lastError = error;
         }
       }
+      throw lastError || new Error('Не вдалося зчитати HTML статті');
+    }
+
+    function parseSudUaHtml(html, sourceUrl) {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const parsed = extractSudUaArticle(doc, sourceUrl);
+      if (!parsed.text) throw new Error('У HTML не знайдено текст новини в .b-static-text.b-news-text');
+      return parsed;
     }
 
     function extractSudUaArticle(doc, sourceUrl) {
@@ -969,22 +982,13 @@
       );
       const textNode =
         doc.querySelector('div.b-static-text.b-news-text') ||
-        doc.querySelector('.b-static-text.b-news-text') ||
-        doc.querySelector('.b-news-text');
+        doc.querySelector('.b-static-text.b-news-text');
 
       let text = '';
       if (textNode) {
         const clone = textNode.cloneNode(true);
         clone.querySelectorAll('script, style, noscript, iframe, form, button, .advert, .advertising, .banner, .social, .share, .b-tags, .b-news-tags, .b-social, .b-follow, .b-news-subscribe').forEach(node => node.remove());
         text = cleanArticleText(clone.innerText || clone.textContent || '');
-      }
-
-      if (!text) {
-        const articleRoot = doc.querySelector('article') || doc.querySelector('main') || doc.body;
-        const paragraphs = [...articleRoot.querySelectorAll('p')]
-          .map(p => cleanArticleText(p.innerText || p.textContent || ''))
-          .filter(isArticleParagraph);
-        text = paragraphs.slice(0, 45).join('\n\n');
       }
 
       return {
